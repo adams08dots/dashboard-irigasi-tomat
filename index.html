@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Monitoring Irigasi Tomat</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #f9fbfd;
+            color: #333;
+            padding: 20px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        header h1 {
+            color: #2c3e50;
+            font-size: 24px;
+        }
+
+        header p {
+            color: #7f8c8d;
+            font-size: 14px;
+            margin-top: 5px;
+        }
+
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 20px;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .card {
+            background: #ffffff;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            text-align: center;
+        }
+
+        .card h3 {
+            font-size: 16px;
+            color: #555;
+            margin-bottom: 15px;
+        }
+
+        .value {
+            font-size: 32px;
+            font-weight: bold;
+            color: #27ae60;
+            margin-bottom: 10px;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 15px;
+            font-size: 12px;
+            font-weight: 600;
+            background-color: #e8f8f5;
+            color: #27ae60;
+        }
+
+        .btn-toggle {
+            background-color: #e74c3c;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>Dashboard Control Tanaman Tomat</h1>
+        <p>ESP8266 • NodeMCU Monitoring Dashboard</p>
+    </header>
+
+    <div class="grid-container">
+        <!-- Card 1: Soil Moisture -->
+        <div class="card">
+            <h3>Kelembaban Tanah</h3>
+            <div class="value" id="soil-val">45%</div>
+            <div class="status-badge">Lembab (Optimal)</div>
+        </div>
+
+        <!-- Card 2: Suhu DHT11 -->
+        <div class="card">
+            <h3>Suhu Udara (DHT11)</h3>
+            <div class="value" id="temp-val">35°C</div>
+            <div class="status-badge">Normal</div>
+        </div>
+
+        <!-- Card 3: Kelembaban Udara DHT11 -->
+        <div class="card">
+            <h3>Kelembaban Udara</h3>
+            <div class="value" id="hum-val">68%</div>
+            <div class="status-badge">Normal</div>
+        </div>
+
+        <!-- Card 4: Output Logika Fuzzy / Pompa -->
+        <div class="card">
+            <h3>Status Pompa Air</h3>
+            <div class="value" style="color: #c0392b;" id="pump-status">OFF</div>
+            <button class="btn-toggle">Kontrol Manual</button>
+        </div>
+    </div>
+<!-- Tambahkan kode JavaScript di bawah ini sebelum tag </body> -->
+    <script>
+        // 1. Mengambil elemen HTML berdasarkan ID yang sudah dibuat di card
+        const soilVal = document.getElementById('soil-val');
+        const tempVal = document.getElementById('temp-val');
+        const humVal = document.getElementById('hum-val');
+
+        // 2. Fungsi untuk mensimulasikan perubahan data sensor
+        function updateDataSensor() {
+            // Menggenerasi nilai acak sebagai simulasi pembacaan sensor
+            const lembabTanah = Math.floor(Math.random() * (75 - 45 + 1)) + 45; // Rentang 45% - 75%
+            const suhuUdara = (24 + Math.random() * 6).toFixed(1);             // Rentang 24.0°C - 30.0°C
+            const lembabUdara = Math.floor(Math.random() * (80 - 55 + 1)) + 55; // Rentang 55% - 80%
+
+            // 3. Mengubah teks di tampilan web secara langsung
+            soilVal.innerText = lembabTanah + '%';
+            tempVal.innerText = suhuUdara + '°C';
+            humVal.innerText = lembabUdara + '%';
+        }
+
+        // 4. Jalankan fungsi updateDataSensor setiap 2000 ms (2 detik)
+        setInterval(updateDataSensor, 2000);
+    </script>
+
+</body>
+</html>
+</body>
+</html>
