@@ -1,153 +1,632 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard Monitoring Irigasi Tomat</title>
-    <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Smart Agriculture — Dashboard Irigasi Tomat IoT</title>
+  <style>
+    :root {
+      --bg: #f1f5f9;
+      --card: #ffffff;
+      --text: #0f172a;
+      --muted: #64748b;
+      --border: #e2e8f0;
+      --primary: #16a34a;
+      --primary-dark: #15803d;
+      --blue: #0284c7;
+      --amber: #d97706;
+      --danger: #dc2626;
+      --radius: 14px;
+    }
 
-        body {
-            background-color: #f9fbfd;
-            color: #333;
-            padding: 20px;
-        }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; }
+    body { background: var(--bg); color: var(--text); padding: 20px; line-height: 1.5; }
+    .container { max-width: 1180px; margin: 0 auto; }
 
-        header {
-            text-align: center;
-            margin-bottom: 30px;
-        }
+    /* Header */
+    header {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 18px 24px;
+      margin-bottom: 20px;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 14px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+    }
+    .title-group h1 { font-size: 1.25rem; font-weight: 700; color: var(--text); }
+    .title-group p { font-size: 0.85rem; color: var(--muted); }
+    .status-bar { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+    .badge {
+      padding: 6px 12px;
+      border-radius: 999px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .badge-sim { background: #fef3c7; color: #92400e; }
+    .badge-live { background: #dcfce7; color: #166534; }
+    .dot { width: 8px; height: 8px; border-radius: 50%; background: currentColor; }
 
-        header h1 {
-            color: #2c3e50;
-            font-size: 24px;
-        }
+    /* Grid Layout */
+    .grid-3 {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+    .grid-2 {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+      gap: 16px;
+      margin-bottom: 20px;
+    }
 
-        header p {
-            color: #7f8c8d;
-            font-size: 14px;
-            margin-top: 5px;
-        }
+    /* Cards */
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+    }
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+    .card-title { font-size: 0.88rem; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.03em; }
+    .metric-value { font-size: 2.1rem; font-weight: 800; margin-bottom: 6px; }
+    .metric-sub { font-size: 0.82rem; color: var(--muted); }
 
-        .grid-container {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-            gap: 20px;
-            max-width: 900px;
-            margin: 0 auto;
-        }
+    /* Progress Bars */
+    .progress-wrap { background: #e2e8f0; height: 10px; border-radius: 999px; overflow: hidden; margin: 12px 0 8px; }
+    .progress-fill { height: 100%; border-radius: 999px; transition: width 0.4s ease, background 0.4s ease; }
 
-        .card {
-            background: #ffffff;
-            border-radius: 12px;
-            padding: 20px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-            text-align: center;
-        }
+    /* Status Tags */
+    .tag { font-size: 0.75rem; font-weight: 700; padding: 3px 9px; border-radius: 6px; }
+    .tag-kering { background: #fee2e2; color: #b91c1c; }
+    .tag-lembap { background: #dcfce7; color: #15803d; }
+    .tag-basah { background: #dbeafe; color: #1d4ed8; }
+    .tag-normal { background: #f1f5f9; color: #334155; }
+    .tag-panas { background: #ffedd5; color: #c2410c; }
 
-        .card h3 {
-            font-size: 16px;
-            color: #555;
-            margin-bottom: 15px;
-        }
+    /* Pump & Control Panel */
+    .pump-box {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #f8fafc;
+      border: 1px solid var(--border);
+      padding: 16px;
+      border-radius: 12px;
+      margin-bottom: 14px;
+    }
+    .pump-state { font-size: 1.4rem; font-weight: 800; }
+    .state-on { color: var(--primary); }
+    .state-off { color: var(--danger); }
 
-        .value {
-            font-size: 32px;
-            font-weight: bold;
-            color: #27ae60;
-            margin-bottom: 10px;
-        }
+    .btn-group { display: flex; gap: 10px; flex-wrap: wrap; }
+    button {
+      border: none;
+      padding: 10px 16px;
+      border-radius: 10px;
+      font-size: 0.86rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .btn-on { background: var(--primary); color: #fff; }
+    .btn-on:hover { background: var(--primary-dark); }
+    .btn-off { background: var(--danger); color: #fff; }
+    .btn-off:hover { background: #b91c1c; }
+    .btn-auto { background: #0f172a; color: #fff; }
+    .btn-auto:hover { background: #334155; }
+    button:disabled { opacity: 0.45; cursor: not-allowed; }
 
-        .status-badge {
-            display: inline-block;
-            padding: 4px 12px;
-            border-radius: 15px;
-            font-size: 12px;
-            font-weight: 600;
-            background-color: #e8f8f5;
-            color: #27ae60;
-        }
+    .alert-cutoff {
+      display: none;
+      background: #fef2f2;
+      border: 1px solid #fecaca;
+      color: #991b1b;
+      padding: 10px 14px;
+      border-radius: 10px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      margin-top: 12px;
+    }
 
-        .btn-toggle {
-            background-color: #e74c3c;
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 6px;
-            font-size: 14px;
-            font-weight: bold;
-            cursor: pointer;
-            width: 100%;
-            margin-top: 10px;
-        }
-    </style>
+    /* Fuzzy Membership Mini Bars */
+    .fuzzy-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 12px; }
+    .mu-row { margin-bottom: 8px; }
+    .mu-label { display: flex; justify-content: space-between; font-size: 0.78rem; color: var(--muted); margin-bottom: 3px; }
+    .mu-bar { height: 6px; background: #e2e8f0; border-radius: 99px; overflow: hidden; }
+    .mu-fill { height: 100%; background: var(--blue); transition: width 0.3s ease; }
+
+    /* Output Specs */
+    .spec-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 10px 0;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.9rem;
+    }
+    .spec-row:last-child { border-bottom: none; }
+
+    /* Chart & Log */
+    canvas { width: 100%; height: 210px; display: block; }
+    .log-list {
+      max-height: 210px;
+      overflow-y: auto;
+      font-family: Consolas, monospace;
+      font-size: 0.8rem;
+      background: #0f172a;
+      color: #e2e8f0;
+      padding: 12px;
+      border-radius: 10px;
+    }
+    .log-item { padding: 4px 0; border-bottom: 1px solid #1e293b; }
+    .log-time { color: #38bdf8; }
+  </style>
 </head>
 <body>
-
+  <div class="container">
+    <!-- HEADER -->
     <header>
-        <h1>Dashboard Control Tanaman Tomat</h1>
-        <p>ESP8266 • NodeMCU Monitoring Dashboard</p>
+      <div class="title-group">
+        <h1>Smart Agriculture — Irigasi Tanaman Tomat</h1>
+        <p>Monitoring Real-Time &amp; Kendali Logika Fuzzy (ESP8266 NodeMCU)</p>
+      </div>
+      <div class="status-bar">
+        <span id="modeBadge" class="badge badge-live"><span class="dot"></span> Mode: AUTO FUZZY</span>
+        <span id="connBadge" class="badge badge-sim"><span class="dot"></span> Simulasi Lokal (Siap Firebase)</span>
+      </div>
     </header>
 
-    <div class="grid-container">
-        <!-- Card 1: Soil Moisture -->
-        <div class="card">
-            <h3>Kelembaban Tanah</h3>
-            <div class="value" id="soil-val">45%</div>
-            <div class="status-badge">Lembab (Optimal)</div>
+    <!-- 3 SENSOR CARDS -->
+    <section class="grid-3">
+      <!-- Soil Moisture -->
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">Kelembaban Tanah (Sm)</span>
+          <span id="tagTanah" class="tag tag-lembap">LEMBAP</span>
+        </div>
+        <div class="metric-value" id="valTanah">48.0%</div>
+        <div class="progress-wrap">
+          <div id="barTanah" class="progress-fill" style="width: 48%; background: #16a34a;"></div>
+        </div>
+        <div class="metric-sub">Batas Kering: &le;30% | Auto Cut-Off Basah: &ge;75%</div>
+      </div>
+
+      <!-- Air Temperature -->
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">Suhu Udara (Ta)</span>
+          <span id="tagSuhu" class="tag tag-normal">NORMAL</span>
+        </div>
+        <div class="metric-value" id="valSuhu">27.5 °C</div>
+        <div class="progress-wrap">
+          <div id="barSuhu" class="progress-fill" style="width: 55%; background: #d97706;"></div>
+        </div>
+        <div class="metric-sub">Dingin: &le;20°C | Normal: 22–30°C | Panas: &ge;28°C</div>
+      </div>
+
+      <!-- Air Humidity -->
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">Kelembaban Udara (DHT11)</span>
+          <span class="tag tag-basah">AMBIENT</span>
+        </div>
+        <div class="metric-value" id="valUdara">72.0%</div>
+        <div class="progress-wrap">
+          <div id="barUdara" class="progress-fill" style="width: 72%; background: #0284c7;"></div>
+        </div>
+        <div class="metric-sub">Interval Pembacaan ESP8266: 5 Detik</div>
+      </div>
+    </section>
+
+    <!-- PUMP CONTROL & FUZZY OUTPUT -->
+    <section class="grid-2">
+      <!-- Kontrol Pompa -->
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">Status Aktuator &amp; Kontrol Pompa</span>
+          <span class="metric-sub">Pin Relay: D7 (GPIO13)</span>
         </div>
 
-        <!-- Card 2: Suhu DHT11 -->
-        <div class="card">
-            <h3>Suhu Udara (DHT11)</h3>
-            <div class="value" id="temp-val">35°C</div>
-            <div class="status-badge">Normal</div>
+        <div class="pump-box">
+          <div>
+            <div class="metric-sub">Kondisi Pompa Air DC</div>
+            <div id="pumpStatusText" class="pump-state state-off">POMPA OFF</div>
+          </div>
+          <div style="text-align: right;">
+            <div class="metric-sub">Debit Pompa (Q)</div>
+            <strong>0.2222 L/detik</strong>
+            <div class="metric-sub">(800 Liter/Jam)</div>
+          </div>
         </div>
 
-        <!-- Card 3: Kelembaban Udara DHT11 -->
-        <div class="card">
-            <h3>Kelembaban Udara</h3>
-            <div class="value" id="hum-val">68%</div>
-            <div class="status-badge">Normal</div>
+        <div class="btn-group">
+          <button id="btnManualOn" class="btn-on" onclick="setManualPump(true)">Manual ON</button>
+          <button id="btnManualOff" class="btn-off" onclick="setManualPump(false)">Manual OFF</button>
+          <button id="btnAutoMode" class="btn-auto" onclick="setAutoMode()">Kembali ke Auto Fuzzy</button>
         </div>
 
-        <!-- Card 4: Output Logika Fuzzy / Pompa -->
-        <div class="card">
-            <h3>Status Pompa Air</h3>
-            <div class="value" style="color: #c0392b;" id="pump-status">OFF</div>
-            <button class="btn-toggle">Kontrol Manual</button>
+        <div id="cutoffAlert" class="alert-cutoff">
+          [AUTO CUT-OFF AKTIF] Kelembaban tanah &ge; 75%. Pompa dimatikan otomatis untuk mencegah kelebihan air.
         </div>
-    </div>
-<!-- Tambahkan kode JavaScript di bawah ini sebelum tag </body> -->
-    <script>
-        // 1. Mengambil elemen HTML berdasarkan ID yang sudah dibuat di card
-        const soilVal = document.getElementById('soil-val');
-        const tempVal = document.getElementById('temp-val');
-        const humVal = document.getElementById('hum-val');
+      </div>
 
-        // 2. Fungsi untuk mensimulasikan perubahan data sensor
-        function updateDataSensor() {
-            // Menggenerasi nilai acak sebagai simulasi pembacaan sensor
-            const lembabTanah = Math.floor(Math.random() * (75 - 45 + 1)) + 45; // Rentang 45% - 75%
-            const suhuUdara = (24 + Math.random() * 6).toFixed(1);             // Rentang 24.0°C - 30.0°C
-            const lembabUdara = Math.floor(Math.random() * (80 - 55 + 1)) + 55; // Rentang 55% - 80%
+      <!-- Hasil Defuzzifikasi & Keanggotaan -->
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">Output Logika Fuzzy &amp; Dosis Air</span>
+          <span class="metric-sub">Defuzzifikasi Weighted Average</span>
+        </div>
 
-            // 3. Mengubah teks di tampilan web secara langsung
-            soilVal.innerText = lembabTanah + '%';
-            tempVal.innerText = suhuUdara + '°C';
-            humVal.innerText = lembabUdara + '%';
+        <div class="spec-row">
+          <span>Durasi Penyiraman (Z*)</span>
+          <strong id="valDurasi">10.0 detik</strong>
+        </div>
+        <div class="spec-row">
+          <span>Volume Air Irigasi (V_Fuzzy = Q &times; Z*)</span>
+          <strong id="valVolume">2.22 Liter</strong>
+        </div>
+
+        <div class="fuzzy-grid">
+          <div>
+            <div class="mu-row">
+              <div class="mu-label"><span>&mu; Kering</span><span id="muKeringTxt">0.00</span></div>
+              <div class="mu-bar"><div id="muKeringBar" class="mu-fill" style="width:0%"></div></div>
+            </div>
+            <div class="mu-row">
+              <div class="mu-label"><span>&mu; Lembap</span><span id="muLembapTxt">0.87</span></div>
+              <div class="mu-bar"><div id="muLembapBar" class="mu-fill" style="width:87%"></div></div>
+            </div>
+            <div class="mu-row">
+              <div class="mu-label"><span>&mu; Basah</span><span id="muBasahTxt">0.00</span></div>
+              <div class="mu-bar"><div id="muBasahBar" class="mu-fill" style="width:0%"></div></div>
+            </div>
+          </div>
+          <div>
+            <div class="mu-row">
+              <div class="mu-label"><span>&mu; Dingin</span><span id="muDinginTxt">0.00</span></div>
+              <div class="mu-bar"><div id="muDinginBar" class="mu-fill" style="width:0%; background:#d97706"></div></div>
+            </div>
+            <div class="mu-row">
+              <div class="mu-label"><span>&mu; Normal</span><span id="muNormalTxt">0.63</span></div>
+              <div class="mu-bar"><div id="muNormalBar" class="mu-fill" style="width:63%; background:#d97706"></div></div>
+            </div>
+            <div class="mu-row">
+              <div class="mu-label"><span>&mu; Panas</span><span id="muPanasTxt">0.00</span></div>
+              <div class="mu-bar"><div id="muPanasBar" class="mu-fill" style="width:0%; background:#d97706"></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CHART & SYSTEM LOG -->
+    <section class="grid-2">
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">Grafik Tren Sensor Real-Time</span>
+          <span class="metric-sub">Hijau: Tanah (%) | Oranye: Suhu (&deg;C)</span>
+        </div>
+        <canvas id="sensorChart" width="520" height="210"></canvas>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">Log Aktivitas Sistem</span>
+          <span class="metric-sub">Serial / Cloud Event</span>
+        </div>
+        <div id="logBox" class="log-list"></div>
+      </div>
+    </section>
+  </div>
+
+  <script>
+    // =========================================================================
+    // 1. KONFIGURASI FIREBASE REALTIME DATABASE
+    // Isi databaseURL dari Firebase Console kamu jika sudah siap online.
+    // Selama masih kosong, web otomatis menjalankan Simulasi Fuzzy ESP8266.
+    // =========================================================================
+    const FIREBASE_DATABASE_URL = "https://irigasi-tomat-iot-default-rtdb.asia-southeast1.firebasedatabase.app"; // Contoh: "https://irigasi-tomat-default-rtdb.asia-southeast1.firebasedatabase.app"
+
+    // Konstanta sesuai program Arduino ESP8266
+    const DEBIT_POMPA = 0.2222;
+    const BATAS_BASAH = 75.0;
+    const BATAS_KERING = 30.0;
+
+    // State Aplikasi
+    let state = {
+      kelembabanTanah: 42.0,
+      suhuUdara: 27.5,
+      kelembabanUdara: 72.0,
+      durasiPompa: 0.0,
+      volumeAir: 0.0,
+      isPumpRunning: false,
+      manualOverride: false
+    };
+
+    const historyTanah = [];
+    const historySuhu = [];
+    const MAX_POINTS = 15;
+
+    function addLog(msg) {
+      const logBox = document.getElementById("logBox");
+      const now = new Date().toLocaleTimeString("id-ID");
+      const item = document.createElement("div");
+      item.className = "log-item";
+      item.innerHTML = `<span class="log-time">[${now}]</span> ${msg}`;
+      logBox.prepend(item);
+      if (logBox.children.length > 25) logBox.removeChild(logBox.lastChild);
+    }
+
+    // =========================================================================
+    // 2. LOGIKA FUZZY IDENTIK DENGAN PROGRAM ARDUINO ESP8266
+    // =========================================================================
+    function hitungFuzzy(sm, ta) {
+      let muKering = 0, muLembap = 0, muBasah = 0;
+      if (sm <= 30) muKering = 1.0;
+      else if (sm > 30 && sm < 45) muKering = (45.0 - sm) / 15.0;
+
+      if (sm > 35 && sm <= 50) muLembap = (sm - 35.0) / 15.0;
+      else if (sm > 50 && sm < 65) muLembap = (65.0 - sm) / 15.0;
+
+      if (sm >= 55 && sm < 75) muBasah = (sm - 55.0) / 20.0;
+      else if (sm >= 75) muBasah = 1.0;
+
+      let muDingin = 0, muNormal = 0, muPanas = 0;
+      if (ta <= 20) muDingin = 1.0;
+      else if (ta > 20 && ta < 24) muDingin = (24.0 - ta) / 4.0;
+
+      if (ta > 22 && ta <= 26) muNormal = (ta - 22.0) / 4.0;
+      else if (ta > 26 && ta < 30) muNormal = (30.0 - ta) / 4.0;
+
+      if (ta >= 28 && ta < 35) muPanas = (ta - 28.0) / 7.0;
+      else if (ta >= 35) muPanas = 1.0;
+
+      // 9 Aturan Inferensi
+      const r1 = Math.min(muKering, muDingin);
+      const r2 = Math.min(muKering, muNormal);
+      const r3 = Math.min(muKering, muPanas);
+      const r4 = Math.min(muLembap, muDingin);
+      const r5 = Math.min(muLembap, muNormal);
+      const r6 = Math.min(muLembap, muPanas);
+      const r7 = Math.min(muBasah, muDingin);
+      const r8 = Math.min(muBasah, muNormal);
+      const r9 = Math.min(muBasah, muPanas);
+
+      const outMati = Math.max(r4, r7, r8, r9);
+      const outSebentar = r5;
+      const outSedang = Math.max(r1, r6);
+      const outLama = Math.max(r2, r3);
+
+      const pembilang = (outMati * 0.0) + (outSebentar * 10.0) + (outSedang * 30.0) + (outLama * 75.0);
+      const penyebut = outMati + outSebentar + outSedang + outLama;
+
+      let zStar = penyebut > 0 ? pembilang / penyebut : 0.0;
+      if (sm >= BATAS_BASAH) zStar = 0.0;
+
+      return {
+        zStar,
+        vFuzzy: DEBIT_POMPA * zStar,
+        mu: { muKering, muLembap, muBasah, muDingin, muNormal, muPanas }
+      };
+    }
+
+    // =========================================================================
+    // 3. KONTROL MANUAL & MODE AUTO
+    // =========================================================================
+    async function setManualPump(turnOn) {
+      if (turnOn && state.kelembabanTanah >= BATAS_BASAH) {
+        addLog("[DITOLAK] Auto Cut-Off aktif karena tanah sudah >= 75%.");
+        return;
+      }
+      state.manualOverride = true;
+      state.isPumpRunning = turnOn;
+      updateModeBadge();
+      addLog(`[MANUAL] Pompa diubah ke ${turnOn ? "ON" : "OFF"} dari Web Dashboard.`);
+      renderUI();
+
+      if (FIREBASE_DATABASE_URL) {
+        await fetch(`${FIREBASE_DATABASE_URL}/irigasi_tomat/kontrol.json`, {
+          method: "PATCH",
+          body: JSON.stringify({ modeManual: true, pompaManual: turnOn })
+        });
+      }
+    }
+
+    async function setAutoMode() {
+      state.manualOverride = false;
+      updateModeBadge();
+      addLog("[MODE] Kembali ke kendali otomatis Logika Fuzzy.");
+      renderUI();
+
+      if (FIREBASE_DATABASE_URL) {
+        await fetch(`${FIREBASE_DATABASE_URL}/irigasi_tomat/kontrol.json`, {
+          method: "PATCH",
+          body: JSON.stringify({ modeManual: false })
+        });
+      }
+    }
+
+    function updateModeBadge() {
+      const badge = document.getElementById("modeBadge");
+      if (state.manualOverride) {
+        badge.className = "badge badge-sim";
+        badge.innerHTML = `<span class="dot"></span> Mode: KONTROL MANUAL`;
+      } else {
+        badge.className = "badge badge-live";
+        badge.innerHTML = `<span class="dot"></span> Mode: AUTO FUZZY`;
+      }
+    }
+
+    // =========================================================================
+    // 4. UPDATE TAMPILAN & GRAFIK
+    // =========================================================================
+    function renderUI() {
+      const fuzzy = hitungFuzzy(state.kelembabanTanah, state.suhuUdara);
+
+      if (!state.manualOverride) {
+        state.durasiPompa = fuzzy.zStar;
+        state.volumeAir = fuzzy.vFuzzy;
+        state.isPumpRunning = (state.kelembabanTanah < BATAS_BASAH && fuzzy.zStar > 1.0);
+      }
+
+      // Auto Cut-Off Protection
+      const cutoffAlert = document.getElementById("cutoffAlert");
+      if (state.kelembabanTanah >= BATAS_BASAH) {
+        state.isPumpRunning = false;
+        cutoffAlert.style.display = "block";
+        document.getElementById("btnManualOn").disabled = true;
+      } else {
+        cutoffAlert.style.display = "none";
+        document.getElementById("btnManualOn").disabled = false;
+      }
+
+      // Sensor Tanah
+      document.getElementById("valTanah").textContent = `${state.kelembabanTanah.toFixed(1)}%`;
+      const barTanah = document.getElementById("barTanah");
+      const tagTanah = document.getElementById("tagTanah");
+      barTanah.style.width = `${state.kelembabanTanah}%`;
+
+      if (state.kelembabanTanah <= BATAS_KERING) {
+        barTanah.style.background = "#dc2626";
+        tagTanah.className = "tag tag-kering";
+        tagTanah.textContent = "KERING";
+      } else if (state.kelembabanTanah >= BATAS_BASAH) {
+        barTanah.style.background = "#2563eb";
+        tagTanah.className = "tag tag-basah";
+        tagTanah.textContent = "BASAH TOTAL";
+      } else {
+        barTanah.style.background = "#16a34a";
+        tagTanah.className = "tag tag-lembap";
+        tagTanah.textContent = "LEMBAP";
+      }
+
+      // Suhu Udara
+      document.getElementById("valSuhu").textContent = `${state.suhuUdara.toFixed(1)} °C`;
+      document.getElementById("barSuhu").style.width = `${Math.min(100, (state.suhuUdara / 45) * 100)}%`;
+      const tagSuhu = document.getElementById("tagSuhu");
+      if (state.suhuUdara <= 20) {
+        tagSuhu.className = "tag tag-basah"; tagSuhu.textContent = "DINGIN";
+      } else if (state.suhuUdara >= 28) {
+        tagSuhu.className = "tag tag-panas"; tagSuhu.textContent = "PANAS";
+      } else {
+        tagSuhu.className = "tag tag-normal"; tagSuhu.textContent = "NORMAL";
+      }
+
+      // Kelembaban Udara
+      document.getElementById("valUdara").textContent = `${state.kelembabanUdara.toFixed(0)}%`;
+      document.getElementById("barUdara").style.width = `${state.kelembabanUdara}%`;
+
+      // Status Pompa & Fuzzy Output
+      const pumpText = document.getElementById("pumpStatusText");
+      pumpText.textContent = state.isPumpRunning ? "POMPA ON" : "POMPA OFF";
+      pumpText.className = `pump-state ${state.isPumpRunning ? "state-on" : "state-off"}`;
+
+      document.getElementById("valDurasi").textContent = `${state.durasiPompa.toFixed(1)} detik`;
+      document.getElementById("valVolume").textContent = `${state.volumeAir.toFixed(2)} Liter`;
+
+      // Derajat Keanggotaan
+      const setMu = (id, val) => {
+        document.getElementById(`${id}Txt`).textContent = val.toFixed(2);
+        document.getElementById(`${id}Bar`).style.width = `${val * 100}%`;
+      };
+      setMu("muKering", fuzzy.mu.muKering);
+      setMu("muLembap", fuzzy.mu.muLembap);
+      setMu("muBasah", fuzzy.mu.muBasah);
+      setMu("muDingin", fuzzy.mu.muDingin);
+      setMu("muNormal", fuzzy.mu.muNormal);
+      setMu("muPanas", fuzzy.mu.muPanas);
+
+      drawChart();
+    }
+
+    function drawChart() {
+      const canvas = document.getElementById("sensorChart");
+      const ctx = canvas.getContext("2d");
+      const w = canvas.width;
+      const h = canvas.height;
+      ctx.clearRect(0, 0, w, h);
+
+      // Grid lines
+      ctx.strokeStyle = "#e2e8f0";
+      ctx.lineWidth = 1;
+      for (let i = 1; i <= 4; i++) {
+        const y = (h / 5) * i;
+        ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w, y); ctx.stroke();
+      }
+
+      const plotLine = (data, color) => {
+        if (data.length < 2) return;
+        ctx.strokeStyle = color;
+        ctx.lineWidth = 2.5;
+        ctx.beginPath();
+        data.forEach((val, idx) => {
+          const x = (idx / (MAX_POINTS - 1)) * (w - 20) + 10;
+          const y = h - ((val / 100) * (h - 24)) - 12;
+          if (idx === 0) ctx.moveTo(x, y);
+          else ctx.lineTo(x, y);
+        });
+        ctx.stroke();
+      };
+
+      plotLine(historyTanah, "#16a34a");
+      plotLine(historySuhu, "#d97706");
+    }
+
+    // =========================================================================
+    // 5. SIKLUS UPDATE DATA (FIREBASE ATAU SIMULASI TIAP 5 DETIK)
+    // =========================================================================
+    async function syncData() {
+      if (FIREBASE_DATABASE_URL) {
+        try {
+          const res = await fetch(`${FIREBASE_DATABASE_URL}/irigasi_tomat.json`);
+          const data = await res.json();
+          if (data && data.sensor) {
+            state.kelembabanTanah = Number(data.sensor.kelembabanTanah || 0);
+            state.suhuUdara = Number(data.sensor.suhuUdara || 0);
+            state.kelembabanUdara = Number(data.sensor.kelembabanUdara || 0);
+            document.getElementById("connBadge").className = "badge badge-live";
+            document.getElementById("connBadge").innerHTML = `<span class="dot"></span> Firebase Terhubung`;
+          }
+        } catch (err) {
+          addLog("[ERROR] Gagal mengambil data Firebase.");
         }
+      } else {
+        // Simulasi perubahan tanah saat pompa menyala vs menguap
+        if (state.isPumpRunning) {
+          state.kelembabanTanah = Math.min(80, state.kelembabanTanah + 6.5);
+        } else {
+          state.kelembabanTanah = Math.max(22, state.kelembabanTanah - 2.2);
+        }
+        state.suhuUdara = +(26.5 + Math.random() * 3.0).toFixed(1);
+        state.kelembabanUdara = Math.round(68 + Math.random() * 8);
+      }
 
-        // 4. Jalankan fungsi updateDataSensor setiap 2000 ms (2 detik)
-        setInterval(updateDataSensor, 2000);
-    </script>
+      historyTanah.push(state.kelembabanTanah);
+      historySuhu.push(state.suhuUdara);
+      if (historyTanah.length > MAX_POINTS) historyTanah.shift();
+      if (historySuhu.length > MAX_POINTS) historySuhu.shift();
 
-</body>
-</html>
+      renderUI();
+      addLog(`Sm: ${state.kelembabanTanah.toFixed(1)}% | Ta: ${state.suhuUdara.toFixed(1)}°C | Z*: ${state.durasiPompa.toFixed(1)}s | Vol: ${state.volumeAir.toFixed(2)}L`);
+    }
+
+    // Inisialisasi awal
+    addLog("Dashboard siap. Interval sinkronisasi: 5 detik.");
+    syncData();
+    setInterval(syncData, 5000);
+  </script>
 </body>
 </html>
